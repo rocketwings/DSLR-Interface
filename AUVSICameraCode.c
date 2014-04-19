@@ -49,68 +49,54 @@ void usage(){
 
 int initSuite(){
 	initImageSync();
-	initTelListener();
-	initAPMControl();
-	initGPSListener();
+	initTLMListener();
 }
 
 int main(int argc, char ** argv){
 
-	if(argc != 1 && argc != 4){
+	if(argc != 1 && argc != 2){
 		usage();
 		exit(1);
 	}
-	if(argc == 4){
-		if(strlen(argv[1]) > 1 || strlen(argv[2]) > 1 ||strlen(argv[3]) > 1){
+	if(argc == 2){
+		if(strlen(argv[1]) > 1 ){
 			usage();
 			printf("All arguments must be 1 character long.\n\n");
 			exit(1);
 		}
-		if(argv[1][0] < 0x30 || argv[1][0] > 0x39 ||
-				argv[2][0] < 0x30 || argv[2][0] > 0x39 ||
-				argv[3][0] < 0x30 || argv[3][0] > 0x39){
+		if(argv[1][0] < 0x30 ){
 			usage();
 			printf("All arguments must be numbers (0-9).\n\n");
 			exit(1);
 		}
-		if(argv[1][0] == argv[2][0] ||
-				argv[2][0] == argv[3][0] ||
-				argv[1][0] == argv[3][0]){
+		if(0){
 			usage();
 			printf("Arguments must be unique!\n\n");
 			exit(1);
 		}
 	}
 
-	char OP[15] = "/dev/ttyUSB";
-	char APM[15] = "/dev/ttyUSB";
-	char GPS[15] = "/dev/ttyUSB";
-	if(argc == 4){
-		strcat(OP, argv[1]);
-		strcat(APM, argv[2]);
-		strcat(GPS, argv[3]);
+	char TLM[15] = "/dev/ttyUSB";
+	if(argc == 2){
+		strcat(TLM, argv[1]);
 	}
 	else{
-		strcat(OP, DEFAULT_OP);
-		strcat(APM, DEFAULT_APM);
-		strcat(GPS, DEFAULT_GPS);
+		strcat(TLM, DEFAULT_TLM);
 	}
-	printf("%s\t%s\t%s\n", OP, APM, GPS);
-	setTTYPorts(OP, APM, GPS);
+	printf("%s\n", TLM);
+	setTTYPorts(TLM);
 
 	//Initialize all sub classes
 	initSuite();
 	
 	//Spawning the four worker threads
-	pthread_t telemetryThread, GPSThread, getThread, saveThread;
+	pthread_t TLMThread, getThread, saveThread;
 
 	pthread_create(&getThread, NULL, GetEvents, NULL);
 	pthread_create(&saveThread, NULL, SaveFiles, NULL);
-	pthread_create(&GPSThread, NULL, GPSListenControl, NULL);
-	pthread_create(&telemetryThread, NULL, telemetrySync, NULL);
+	pthread_create(&TLMThread, NULL, TLMSync, NULL);
 
 	pthread_join(getThread, NULL);
 	pthread_join(saveThread, NULL);
-	pthread_join(GPSThread, NULL);
-	pthread_join(telemetryThread, NULL);
+	pthread_join(TLMThread, NULL);
 }

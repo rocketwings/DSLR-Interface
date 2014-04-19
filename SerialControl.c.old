@@ -12,21 +12,6 @@
 
 struct termios options;
 
-int openTLMSerial(int* desc){
-        *desc = open(getTLMTTY(), O_RDONLY | O_NOCTTY);
-        if(*desc == -1){
-                return -1;
-        }
-        else{
-                tcgetattr(*desc, &options);
-                cfsetispeed(&options, B57600);
-                cfsetospeed(&options, B57600);
-                options.c_cflag |= (CLOCAL |CREAD);
-                tcsetattr(*desc, TCSANOW, &options);
-                return 0;
-        }
-}
-
 int openOPSerial(int* desc){
 	*desc = open(getOPTTY(), O_RDONLY | O_NOCTTY);
 	if(*desc == -1){
